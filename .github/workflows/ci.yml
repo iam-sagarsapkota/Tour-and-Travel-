@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:18.7-alpine
+        env:
+          POSTGRES_DB: tour_travel
+          POSTGRES_USER: tour_travel
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tour_travel"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://tour_travel:ci-only-password@localhost:5432/tour_travel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/requirements/*.txt
+      - run: pip install -r requirements/dev.txt pip-audit
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Migrations are up to date
+        run: python manage.py makemigrations --check --dry-run --settings=config.settings.test
+      - name: Tests (PostgreSQL)
+        run: pytest --cov-fail-under=80
+      - name: Dependency audit
+        run: pip-audit -r requirements/prod.txt

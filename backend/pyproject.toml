@@ -1,0 +1,26 @@
+[project]
+name = "tour-travel-backend"
+version = "0.1.0"
+description = "Himalaya Trails - Nepal trekking & hiking booking platform API"
+requires-python = ">=3.14"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers --cov=apps --cov=common --cov-report=term-missing:skip-covered"
+
+[tool.coverage.run]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+extend-exclude = ["migrations", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "C4", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106"]
+"conftest.py" = ["S105", "S106"]
+"config/settings/*" = ["S105", "F403", "F405"]
