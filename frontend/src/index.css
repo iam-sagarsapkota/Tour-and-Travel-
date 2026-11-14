@@ -1,0 +1,114 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/inter";
+
+/* Design tokens: PRD section 11.1 (brand palette) mapped onto shadcn/ui variables. */
+@theme inline {
+  --font-heading: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-forest: var(--forest);
+  --color-forest-light: var(--forest-light);
+  --color-gold: var(--gold);
+  --color-gold-dark: var(--gold-dark);
+  --color-offwhite: var(--offwhite);
+  --color-slate: var(--slate);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+:root {
+  /* Brand */
+  --forest: #123b32;
+  --forest-light: #1d5a4c;
+  --gold: #e8a34a;
+  --gold-dark: #b9741c;
+  --offwhite: #f7f8f5;
+  --slate: #263238;
+  /* Semantic */
+  --success: #1e7f4f;
+  --warning: #b45309;
+  --destructive: #b91c1c;
+
+  --background: var(--offwhite);
+  --foreground: var(--slate);
+  --card: #ffffff;
+  --card-foreground: var(--slate);
+  --popover: #ffffff;
+  --popover-foreground: var(--slate);
+  --primary: var(--forest);
+  --primary-foreground: var(--offwhite);
+  --secondary: #e9ede7;
+  --secondary-foreground: var(--forest);
+  --muted: #eef0eb;
+  --muted-foreground: #55636a;
+  --accent: #fbefdc;
+  --accent-foreground: #5c3a0e;
+  --border: #dde2da;
+  --input: #c9d0c6;
+  --ring: var(--gold-dark);
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading tracking-tight;
+  }
+  /* One visible focus style everywhere (keyboard users). */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
