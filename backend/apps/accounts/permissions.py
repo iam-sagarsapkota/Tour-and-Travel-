@@ -1,18 +1,8 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
+from common.permissions import IsAdmin, IsSuperAdmin
 
-class IsAdmin(BasePermission):
-    """Admin or super admin."""
-
-    def has_permission(self, request, view):
-        user = request.user
-        return bool(user and user.is_authenticated and user.is_admin)
-
-
-class IsSuperAdmin(BasePermission):
-    def has_permission(self, request, view):
-        user = request.user
-        return bool(user and user.is_authenticated and user.is_super_admin)
+__all__ = ["CanManageUser", "IsAdmin", "IsSuperAdmin"]
 
 
 class CanManageUser(BasePermission):

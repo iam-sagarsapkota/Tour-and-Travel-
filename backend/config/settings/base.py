@@ -32,6 +32,9 @@ INSTALLED_APPS = [
     # Local
     "common",
     "apps.accounts",
+    "apps.destinations",
+    "apps.adventures",
+    "apps.departures",
 ]
 
 MIDDLEWARE = [
@@ -102,6 +105,13 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+MAX_IMAGE_UPLOAD_BYTES = env.int("MAX_IMAGE_UPLOAD_BYTES", default=5 * 1024 * 1024)
+
+# --- Business rules -------------------------------------------------------
+# Trips run on Nepal time; dates such as booking cutoffs are derived in this zone.
+BUSINESS_TIME_ZONE = "Asia/Kathmandu"
+# Used when an admin schedules a departure without an explicit booking cutoff.
+DEFAULT_BOOKING_CUTOFF_DAYS = env.int("DEFAULT_BOOKING_CUTOFF_DAYS", default=3)
 
 # --- Cache / Celery -------------------------------------------------------
 REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
@@ -190,6 +200,11 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": "/api/v1",
+    # Two different "status" choice sets exist; give each a stable schema name.
+    "ENUM_NAME_OVERRIDES": {
+        "PublishStatusEnum": "common.models.PublishStatus",
+        "DepartureStatusEnum": "apps.departures.models.DepartureStatus",
+    },
 }
 
 LOGGING = {

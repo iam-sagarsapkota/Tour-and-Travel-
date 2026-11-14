@@ -7,8 +7,8 @@ pass, and merged to `main` once reviewed.
 | # | Phase | PRD sections | Status |
 |---|-------|--------------|--------|
 | 1 | Foundation & identity | 2, 3, 4.1, 12, 13 (Identity), 15, 17 | **Done** |
-| 2 | Catalog & departures (backend) | 5, 6.1, 9.2, 13 (Catalog, Scheduling), 20 | Next |
-| 3 | Frontend foundation & public site | 4.2, 5, 10, 11 | Planned |
+| 2 | Catalog & departures (backend) | 5, 6.1, 9.2, 13 (Catalog, Scheduling), 20 | **Done** |
+| 3 | Frontend foundation & public site | 4.2, 5, 10, 11 | Next |
 | 4 | Bookings & capacity | 6.2, 6.3, 13 (Booking) | Planned |
 | 5 | Payments | 7, 13 (Payments) | Planned |
 | 6 | Dashboards & notifications | 8, 9, 14, 13 (Operations) | Planned |
@@ -33,12 +33,20 @@ Not in this phase (deliberately): email/phone **verification** flows and moving 
 sending to Celery — both land with notifications in phase 6. Phone-only accounts cannot
 self-serve a password reset until an SMS channel exists; an admin can reset it for them.
 
-## Phase 2 — Catalog & departures (backend)
+## Phase 2 — Catalog & departures (backend, done)
 
-Destination, AdventureCategory, Adventure, AdventureImage, ItineraryDay, Departure.
-Public listing (`GET /events/`) with search, filters, sorting and pagination; authenticated
-detail (`GET /events/{slug}/`); public destinations/categories; admin CRUD with
-draft → published → archived workflow; media upload validation; seed data for Nepal regions.
+- Models: Destination, AdventureCategory, Adventure, AdventureImage, ItineraryDay, Departure,
+  with database constraints (positive price/duration/capacity, seats reserved ≤ capacity,
+  end date ≥ start date, unique itinerary day).
+- Public listing `GET /events/` with search, filters, sorting and pagination; authenticated
+  detail `GET /events/{slug}/`; public destinations and categories.
+- Admin API for destinations, categories, adventures (draft → published → archived),
+  gallery images and departures, all admin-only.
+- Validated image uploads, `seed_catalog` demo data, 96 new tests (185 total).
+- Details: [catalog.md](catalog.md).
+
+Not in this phase: bookings do not exist yet, so `seats_reserved` and `popularity` stay at
+zero until phase 4. Route maps are a stored URL only; map rendering is post-MVP.
 
 ## Phase 3 — Frontend foundation & public site
 

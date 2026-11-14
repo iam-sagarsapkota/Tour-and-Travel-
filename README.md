@@ -7,8 +7,9 @@ manage the catalog, departures, bookings and operations.
 Built from `Tour_Travel_System_PRD_ReactBits.pdf` (PRD v1.1) in phases — see
 [docs/phases.md](docs/phases.md) for the plan and current status.
 
-**Current status: Phase 1 (foundation & identity) complete.** The backend API for accounts
-and authentication exists; the catalog, frontend, bookings and payments are not built yet.
+**Current status: Phases 1–2 complete.** The backend API covers accounts, authentication and
+the tourism catalog (destinations, adventures, departures). The frontend, bookings and
+payments are not built yet.
 
 ## Stack
 
@@ -19,6 +20,7 @@ and authentication exists; the catalog, frontend, bookings and payments are not 
 | API docs | drf-spectacular 0.30.0 (OpenAPI) |
 | Database | PostgreSQL 18.7 |
 | Cache / broker | Redis 8.8.4, Celery 5.7.0 |
+| Images | Pillow 13.0.0 |
 | Tests / quality | pytest 9.2.0, pytest-django 4.14.0, Ruff 0.17.5 |
 | Runtime | Docker Compose |
 
@@ -30,9 +32,12 @@ Frontend (React + Vite + TypeScript, Tailwind, shadcn/ui, React Bits) arrives in
 backend/
   config/            settings (base, development, production, test), urls, celery
   apps/accounts/     custom user model, auth API, admin user management
+  apps/destinations/ destination directory
+  apps/adventures/   categories, adventures, gallery, itinerary, public event API
+  apps/departures/   scheduled departures, capacity and "bookable" rule
   common/            error envelope, pagination, health endpoints
   requirements/      pinned dependencies (base, dev, prod)
-docs/                phases, authentication
+docs/                phases, authentication, catalog
 docker-compose.yml   development stack
 .github/workflows/   CI
 ```
@@ -45,6 +50,7 @@ Prerequisites: Docker Desktop (running).
 cp .env.example .env          # then set DJANGO_SECRET_KEY and POSTGRES_PASSWORD
 docker compose up --build
 docker compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py seed_catalog   # optional demo data
 ```
 
 Migrations run automatically when the backend container starts.
@@ -88,6 +94,7 @@ See [.env.example](.env.example). Secrets are read from the environment only;
 
 - [Delivery phases and open decisions](docs/phases.md)
 - [Authentication, roles and token model](docs/authentication.md)
+- [Catalog, departures and listing filters](docs/catalog.md)
 
 ## Branches
 
