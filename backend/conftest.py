@@ -16,6 +16,14 @@ def _clear_cache():
     cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def _send_notifications_immediately(monkeypatch):
+    """Tests run inside a transaction that never commits; deliver queued email at once."""
+    from apps.notifications import services
+
+    monkeypatch.setattr(services, "_after_commit", lambda callback: callback())
+
+
 @pytest.fixture
 def api():
     return APIClient()

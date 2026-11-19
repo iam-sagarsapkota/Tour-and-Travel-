@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.operations.audit import record
 from common.permissions import IsAdmin
 
 from . import services
@@ -119,5 +120,12 @@ class AdminBookingViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         booking = services.cancel_booking(
             self.get_object(), actor=request.user, reason=serializer.validated_data["reason"]
+        )
+        record(
+            actor=request.user,
+            action="cancel",
+            obj=booking,
+            note=serializer.validated_data["reason"],
+            request=request,
         )
         return Response(self.get_serializer(self.get_queryset().get(pk=booking.pk)).data)

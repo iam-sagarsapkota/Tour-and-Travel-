@@ -194,6 +194,11 @@ def _apply(attempt_id, result: Result, now) -> PaymentAttempt:
             attempt.completed_at = attempt.completed_at or now
         attempt.save()
         _log(attempt, PaymentLog.Kind.STATUS_CHANGE, f"{previous} -> {new_status}")
+        if (
+            new_status in (Attempt.FAILED, Attempt.EXPIRED)
+            and payment.status != Payment.Status.SUCCESSFUL
+        ):
+            _notify_traveller(payment, "payment_failed", f"payment_failed:{attempt.pk}")
 
         if new_status == Attempt.SUCCESSFUL:
             _on_success(payment, attempt, now)
@@ -221,11 +226,19 @@ def _on_success(payment: Payment, attempt: PaymentAttempt, now) -> None:
     payment.paid_at = now
     payment.save()
     if not booking_services.confirm_paid_booking(payment.booking, now=now):
+        _notify_traveller(payment, "payment_needs_review", f"payment_needs_review:{payment.pk}")
         _flag(
             payment,
             "Paid, but the booking could not be confirmed (cancelled, or no seats left "
             "after the hold expired). Refund the traveller.",
         )
+
+
+def _notify_traveller(payment: Payment, kind: str, dedupe_key: str) -> None:
+    from apps.notifications.services import notify
+
+    booking = payment.booking
+    notify(booking.user, kind, booking=booking, dedupe_key=dedupe_key)
 
 
 def _refresh_open_status(payment: Payment) -> None:

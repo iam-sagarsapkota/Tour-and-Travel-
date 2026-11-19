@@ -7,6 +7,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.operations.audit import AuditedViewSetMixin, record
 from common.models import PublishStatus
 from common.permissions import IsAdmin
 
@@ -71,7 +72,7 @@ class CategoryListView(generics.ListAPIView):
 # --- Admin ------------------------------------------------------------------
 
 
-class CategoryAdminViewSet(viewsets.ModelViewSet):
+class CategoryAdminViewSet(AuditedViewSetMixin, viewsets.ModelViewSet):
     """Categories are deactivated via ``is_active``; there is no delete."""
 
     queryset = AdventureCategory.objects.all()
@@ -88,7 +89,7 @@ class CategoryAdminViewSet(viewsets.ModelViewSet):
     unpublish=extend_schema(request=None, responses=AdventureAdminSerializer),
     archive=extend_schema(request=None, responses=AdventureAdminSerializer),
 )
-class AdventureAdminViewSet(viewsets.ModelViewSet):
+class AdventureAdminViewSet(AuditedViewSetMixin, viewsets.ModelViewSet):
     """Adventures are archived, never deleted (bookings and payments must stay traceable)."""
 
     queryset = Adventure.objects.select_related("destination", "category").prefetch_related(
@@ -104,6 +105,7 @@ class AdventureAdminViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def _respond(self, adventure):
+        record(actor=self.request.user, action=self.action, obj=adventure, request=self.request)
         return Response(self.get_serializer(adventure).data)
 
     @action(detail=True, methods=["post"])
@@ -120,6 +122,7 @@ class AdventureAdminViewSet(viewsets.ModelViewSet):
 
 
 class AdventureImageAdminViewSet(
+    AuditedViewSetMixin,
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -138,5 +141,6 @@ class AdventureImageAdminViewSet(
 
     def perform_destroy(self, instance):
         image = instance.image
+        record(actor=self.request.user, action="delete", obj=instance, request=self.request)
         instance.delete()
         image.delete(save=False)  # remove the file as well as the row

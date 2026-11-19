@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -37,6 +38,9 @@ INSTALLED_APPS = [
     "apps.departures",
     "apps.bookings",
     "apps.payments",
+    "apps.notifications",
+    "apps.operations",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [
@@ -117,6 +121,8 @@ DEFAULT_BOOKING_CUTOFF_DAYS = env.int("DEFAULT_BOOKING_CUTOFF_DAYS", default=3)
 # How long unpaid seats are held before they return to sale (product decision: 15 min).
 BOOKING_HOLD_MINUTES = env.int("BOOKING_HOLD_MINUTES", default=15)
 MAX_PARTICIPANTS_PER_BOOKING = env.int("MAX_PARTICIPANTS_PER_BOOKING", default=20)
+# Trip reminder emails go out this many days before departure.
+TRIP_REMINDER_DAYS = env.int("TRIP_REMINDER_DAYS", default=3)
 
 # --- Payments -------------------------------------------------------------
 # Starting a payment extends the seat hold so the traveller can finish checkout.
@@ -156,6 +162,10 @@ CELERY_BEAT_SCHEDULE = {
     "reconcile-open-payments": {
         "task": "payments.reconcile_open_attempts",
         "schedule": 300.0,  # eSewa: use the status API if no answer within five minutes
+    },
+    "trip-reminders": {
+        "task": "notifications.trip_reminders",
+        "schedule": crontab(hour=3, minute=0),  # 08:45 in Nepal; deduplicated per booking
     },
 }
 
@@ -214,6 +224,7 @@ REST_FRAMEWORK = {
         "auth_token_refresh": "60/min",
         "bookings_create": "30/hour",
         "payments": "60/hour",
+        "contact": "10/hour",
     },
 }
 

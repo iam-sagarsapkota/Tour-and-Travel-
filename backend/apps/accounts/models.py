@@ -100,6 +100,9 @@ class UserProfile(models.Model):
     address = models.CharField(max_length=255, blank=True)
     emergency_contact_name = models.CharField(max_length=150, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
+    trip_reminders = models.BooleanField(
+        default=True, help_text="Email a reminder a few days before each trip."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -5,8 +5,8 @@ import logging
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.tokens import default_token_generator
+from django.core import signing
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
@@ -35,9 +35,59 @@ def revoke_refresh_tokens(user: User) -> None:
 
 def register_user(*, full_name: str, password: str, email=None, phone=None) -> User:
     """Create a regular user. Role and status are never taken from client input."""
-    return User.objects.create_user(
-        email=email, phone=phone, password=password, full_name=full_name
-    )
+    from apps.notifications.models import Notification
+    from apps.notifications.services import notify
+
+    with transaction.atomic():
+        user = User.objects.create_user(
+            email=email, phone=phone, password=password, full_name=full_name
+        )
+        notify(user, Notification.Kind.WELCOME, dedupe_key=f"welcome:{user.pk}")
+        if user.email:
+            send_email_verification(user)
+    return user
+
+
+# --- Email verification ------------------------------------------------------
+
+_VERIFY_SALT = "accounts.email-verification"
+EMAIL_VERIFICATION_MAX_AGE = 3 * 24 * 60 * 60  # seconds
+
+
+def send_email_verification(user: User) -> None:
+    from apps.notifications.models import Notification
+    from apps.notifications.services import notify
+
+    if not user.email or user.email_verified:
+        return
+    token = signing.dumps({"u": str(user.pk), "e": user.email}, salt=_VERIFY_SALT)
+    link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+    notify(user, Notification.Kind.EMAIL_VERIFICATION, link=link)
+
+
+def verify_email(token: str) -> User | None:
+    """Mark the address verified. The link only works for the address it was sent to."""
+    try:
+        data = signing.loads(token, salt=_VERIFY_SALT, max_age=EMAIL_VERIFICATION_MAX_AGE)
+        user = User.objects.get(pk=data["u"], is_active=True)
+    except signing.BadSignature, User.DoesNotExist, KeyError, TypeError, ValidationError:
+        return None
+    if user.email != data.get("e"):
+        return None
+    if not user.email_verified:
+        user.email_verified_at = timezone.now()
+        user.save(update_fields=["email_verified_at", "updated_at"])
+    return user
+
+
+# --- Sessions -----------------------------------------------------------------
+
+
+def active_sessions(user: User):
+    """Refresh tokens that can still be used: one per signed-in browser/device."""
+    return OutstandingToken.objects.filter(
+        user=user, blacklistedtoken__isnull=True, expires_at__gt=timezone.now()
+    ).order_by("-created_at")
 
 
 def login(*, identifier: str, password: str, request=None) -> User:
@@ -77,17 +127,14 @@ def send_password_reset(email: str) -> None:
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     link = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
-    minutes = settings.PASSWORD_RESET_TIMEOUT // 60
-    send_mail(
-        subject="Reset your Himalaya Trails password",
-        message=(
-            f"Hello {user.full_name},\n\n"
-            f"Use the link below to choose a new password. It expires in {minutes} minutes "
-            f"and can be used once.\n\n{link}\n\n"
-            "If you did not request this, you can ignore this email."
-        ),
-        from_email=None,
-        recipient_list=[user.email],
+    from apps.notifications.models import Notification
+    from apps.notifications.services import notify
+
+    notify(
+        user,
+        Notification.Kind.PASSWORD_RESET,
+        link=link,
+        minutes=settings.PASSWORD_RESET_TIMEOUT // 60,
     )
 
 

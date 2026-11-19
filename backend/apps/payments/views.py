@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.bookings.models import Booking
+from apps.operations.audit import record
 from common.permissions import IsAdmin
 
 from . import services
@@ -116,6 +117,7 @@ class AdminPaymentViewSet(viewsets.ReadOnlyModelViewSet):
         payment = self.get_object()
         for attempt in payment.attempts.all():
             services.verify_attempt(attempt, force=True)
+        record(actor=request.user, action="reconcile", obj=payment, request=request)
         return Response(self.get_serializer(self.get_queryset().get(pk=payment.pk)).data)
 
     @extend_schema(request=ResolveSerializer, responses=AdminPaymentSerializer)
@@ -126,5 +128,12 @@ class AdminPaymentViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         payment = services.resolve_attention(
             self.get_object(), actor=request.user, note=serializer.validated_data["note"]
+        )
+        record(
+            actor=request.user,
+            action="resolve",
+            obj=payment,
+            note=serializer.validated_data["note"],
+            request=request,
         )
         return Response(self.get_serializer(self.get_queryset().get(pk=payment.pk)).data)

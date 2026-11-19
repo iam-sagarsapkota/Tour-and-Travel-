@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 
+from apps.operations.audit import AuditedViewSetMixin
 from common.models import PublishStatus
 from common.permissions import IsAdmin
 
@@ -40,7 +41,7 @@ class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
         return DestinationListSerializer
 
 
-class DestinationAdminViewSet(viewsets.ModelViewSet):
+class DestinationAdminViewSet(AuditedViewSetMixin, viewsets.ModelViewSet):
     """Admin management. Destinations are archived via ``status``; there is no delete."""
 
     queryset = Destination.objects.all()

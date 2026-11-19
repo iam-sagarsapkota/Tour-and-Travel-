@@ -62,6 +62,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "address",
             "emergency_contact_name",
             "emergency_contact_phone",
+            "trip_reminders",
         ]
 
 
@@ -238,3 +239,13 @@ class AdminUserSerializer(ContactFieldsMixin, serializers.ModelSerializer):
         if was_active and not instance.is_active:
             services.revoke_refresh_tokens(instance)
         return instance
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=500)
+
+
+class SessionSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    created_at = serializers.DateTimeField()
+    expires_at = serializers.DateTimeField()

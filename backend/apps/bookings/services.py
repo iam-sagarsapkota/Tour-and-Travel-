@@ -27,6 +27,19 @@ from .models import Booking, BookingEvent, BookingParticipant
 
 logger = logging.getLogger(__name__)
 
+
+def _notify(booking: Booking, kind: str) -> None:
+    """Queue a traveller email for a booking event (once per booking and kind)."""
+    from apps.notifications.services import notify
+
+    notify(booking.user, kind, booking=booking, dedupe_key=f"{kind}:{booking.pk}")
+
+
+def _payment_in_flight(booking: Booking) -> bool:
+    payment = getattr(booking, "payment", None)
+    return bool(payment and payment.status in ("processing", "successful"))
+
+
 # Crockford-style alphabet without look-alikes (0/O, 1/I/L, U).
 _REFERENCE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ"
 _CENTS = Decimal("0.01")
@@ -72,6 +85,8 @@ def _release_expired_holds(departure: Departure, now) -> int:
         booking.status = Booking.Status.EXPIRED
         booking.save(update_fields=["status", "updated_at"])
         _record(booking, Booking.Status.PENDING, Booking.Status.EXPIRED, note="Payment hold lapsed")
+        if not _payment_in_flight(booking):  # a late payment may still confirm it
+            _notify(booking, "booking_expired")
     _change_seats(departure, -sum(booking.participant_count for booking in stale))
     return len(stale)
 
@@ -232,6 +247,7 @@ def confirm_booking(booking: Booking, *, actor=None, now: dt.datetime | None = N
             popularity=F("popularity") + locked.participant_count
         )
         _record(locked, Booking.Status.PENDING, Booking.Status.CONFIRMED, actor=actor)
+        _notify(locked, "booking_confirmed")
     return locked
 
 
@@ -292,6 +308,7 @@ def confirm_paid_booking(booking: Booking, *, now: dt.datetime | None = None) ->
             Booking.Status.CONFIRMED,
             note="Paid after the hold lapsed; seats re-reserved.",
         )
+        _notify(locked, "booking_confirmed")
     return True
 
 
@@ -324,6 +341,7 @@ def cancel_booking(booking: Booking, *, actor, reason: str = "") -> Booking:
         locked.save(update_fields=["status", "cancelled_at", "cancellation_reason", "updated_at"])
         _change_seats(departure, -locked.participant_count)
         _record(locked, previous, Booking.Status.CANCELLED, actor=actor, note=reason)
+        _notify(locked, "booking_cancelled")
     return locked
 
 

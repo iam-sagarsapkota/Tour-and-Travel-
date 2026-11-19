@@ -8,6 +8,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTRefreshView
 
+from apps.operations.audit import AuditedViewSetMixin, record
+
 from . import services
 from .models import User
 from .permissions import CanManageUser, IsAdmin
@@ -20,8 +22,10 @@ from .serializers import (
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
     RegisterSerializer,
+    SessionSerializer,
     TokenPairSerializer,
     UserSerializer,
+    VerifyEmailSerializer,
 )
 
 
@@ -132,7 +136,46 @@ class PasswordResetConfirmView(PublicAuthView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class AdminUserViewSet(viewsets.ModelViewSet):
+class VerifyEmailView(PublicAuthView):
+    throttle_scope = "auth_password_reset"
+
+    @extend_schema(request=VerifyEmailSerializer, responses={204: None})
+    def post(self, request):
+        serializer = VerifyEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if services.verify_email(serializer.validated_data["token"]) is None:
+            raise ValidationError({"token": ["This link is invalid or has expired."]})
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ResendVerificationView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_scope = "auth_password_reset"
+
+    @extend_schema(request=None, responses={202: None})
+    def post(self, request):
+        if not request.user.email:
+            raise ValidationError({"email": ["Add an email address first."]})
+        services.send_email_verification(request.user)
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+
+class SessionsView(APIView):
+    """Signed-in browsers/devices, and signing out of all of them."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses=SessionSerializer(many=True))
+    def get(self, request):
+        return Response(SessionSerializer(services.active_sessions(request.user), many=True).data)
+
+    @extend_schema(request=None, responses={204: None})
+    def delete(self, request):
+        services.revoke_refresh_tokens(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminUserViewSet(AuditedViewSetMixin, viewsets.ModelViewSet):
     """Admin user management. DELETE deactivates the account; rows are never removed."""
 
     queryset = User.objects.all()
@@ -147,3 +190,4 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         if instance.pk == self.request.user.pk:
             raise ValidationError({"detail": ["You cannot deactivate your own account."]})
         services.deactivate_user(instance)
+        record(actor=self.request.user, action="deactivate", obj=instance, request=self.request)
