@@ -152,6 +152,7 @@ const PENDING: Booking = {
   cancellation_reason: "",
   created_at: "2027-01-01T10:00:00Z",
   can_cancel: true,
+  payment: null,
 }
 
 describe("BookingDetailPage", () => {
@@ -162,6 +163,7 @@ describe("BookingDetailPage", () => {
   async function renderDetail(booking: Booking) {
     apiMock.mockImplementation(async (path: string) => {
       if (path === "/bookings/b1/") return booking
+      if (path === "/payments/providers/") return [{ code: "esewa", name: "eSewa" }]
       if (path === "/bookings/b1/cancel/")
         return { ...booking, status: "cancelled", can_cancel: false }
       throw new Error(`unexpected ${path}`)

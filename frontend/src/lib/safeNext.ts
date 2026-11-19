@@ -5,7 +5,7 @@
  * (absolute URLs, protocol-relative `//host`, backslash tricks, unknown
  * sections) falls back to the default, which prevents open redirects.
  */
-const ALLOWED_PREFIXES = ["/events", "/destinations", "/dashboard", "/admin"]
+const ALLOWED_PREFIXES = ["/events", "/destinations", "/dashboard", "/admin", "/payments"]
 
 export const DEFAULT_AFTER_AUTH = "/events"
 

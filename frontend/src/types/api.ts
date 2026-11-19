@@ -200,6 +200,73 @@ export interface Booking {
   cancellation_reason: string
   created_at: string
   can_cancel: boolean
+  payment: { status: PaymentStatus; provider: string; paid_at: string | null } | null
+}
+
+export type PaymentStatus =
+  | "pending"
+  | "processing"
+  | "successful"
+  | "failed"
+  | "cancelled"
+  | "refunded"
+  | "partially_refunded"
+
+export type AttemptStatus =
+  | "initiated"
+  | "processing"
+  | "successful"
+  | "failed"
+  | "cancelled"
+  | "expired"
+  | "refunded"
+  | "partially_refunded"
+
+export interface PaymentProvider {
+  code: "esewa" | "khalti"
+  name: string
+}
+
+/** Where to send the browser. POST means submit `fields` as a form to `url`. */
+export interface PaymentRedirect {
+  attempt: string
+  method: "GET" | "POST"
+  url: string
+  fields: Record<string, string>
+}
+
+export interface PaymentAttempt {
+  id: string
+  provider: string
+  reference: string
+  amount: string
+  currency: string
+  status: AttemptStatus
+  gateway_status: string
+  gateway_transaction_id: string
+  created_at: string
+  completed_at: string | null
+}
+
+export interface Payment {
+  id: string
+  booking_id: string
+  booking_reference: string
+  booking_status: BookingStatus
+  adventure: string
+  amount: string
+  currency: string
+  status: PaymentStatus
+  provider: string
+  gateway_reference: string
+  paid_at: string | null
+  created_at: string
+  attempts: PaymentAttempt[]
+}
+
+export interface VerifyResult {
+  attempt: PaymentAttempt
+  payment: Payment
 }
 
 export interface Quote {

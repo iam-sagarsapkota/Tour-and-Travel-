@@ -13,3 +13,10 @@ MAILERS = {"default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Gateways are enabled with sandbox-style values; tests replace all HTTP calls.
+ESEWA_ENABLED = True
+ESEWA_PRODUCT_CODE = "EPAYTEST"
+ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q"
+KHALTI_SECRET_KEY = "test-khalti-secret"
+FRONTEND_URL = "https://trails.test"

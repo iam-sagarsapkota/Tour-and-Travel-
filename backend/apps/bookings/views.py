@@ -19,7 +19,7 @@ from .serializers import (
     QuoteSerializer,
 )
 
-BOOKING_RELATED = ("departure__adventure__destination", "user")
+BOOKING_RELATED = ("departure__adventure__destination", "user", "payment")
 
 
 def _scope_filter(scope: str | None) -> Q | None:

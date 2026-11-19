@@ -235,6 +235,66 @@ def confirm_booking(booking: Booking, *, actor=None, now: dt.datetime | None = N
     return locked
 
 
+def extend_hold(booking: Booking, *, until: dt.datetime) -> Booking:
+    """Keep seats held while the traveller is on the payment page. Never shortens a hold."""
+    with transaction.atomic():
+        _, locked = _lock_booking(booking)
+        if locked.status != Booking.Status.PENDING or locked.expires_at <= timezone.now():
+            raise BookingConflict(
+                "The seat hold for this booking has ended. Please book again.",
+                code="booking_expired",
+            )
+        if until > locked.expires_at:
+            locked.expires_at = until
+            locked.save(update_fields=["expires_at", "updated_at"])
+    return locked
+
+
+def confirm_paid_booking(booking: Booking, *, now: dt.datetime | None = None) -> bool:
+    """Confirm a booking after a verified payment, recovering a lapsed hold if possible.
+
+    A traveller can finish paying after the hold expired. If the departure still
+    has room the seats are re-reserved and the booking confirmed; otherwise this
+    returns False and the payment is flagged for a refund. Returns True on success.
+    """
+    now = now or timezone.now()
+    try:
+        confirm_booking(booking, now=now)
+        return True
+    except BookingConflict as exc:
+        if exc.detail.code != "booking_expired":
+            return False
+
+    with transaction.atomic():
+        departure, locked = _lock_booking(booking)
+        if locked.status == Booking.Status.CONFIRMED:
+            return True
+        still_running = departure.status in (
+            Departure.Status.OPEN,
+            Departure.Status.CLOSED,
+        ) and departure.start_date >= timezone.localdate(now)
+        if (
+            locked.status != Booking.Status.EXPIRED
+            or not still_running
+            or departure.seats_available < locked.participant_count
+        ):
+            return False
+        locked.status = Booking.Status.CONFIRMED
+        locked.confirmed_at = now
+        locked.save(update_fields=["status", "confirmed_at", "updated_at"])
+        _change_seats(departure, locked.participant_count)
+        Adventure.objects.filter(pk=departure.adventure_id).update(
+            popularity=F("popularity") + locked.participant_count
+        )
+        _record(
+            locked,
+            Booking.Status.EXPIRED,
+            Booking.Status.CONFIRMED,
+            note="Paid after the hold lapsed; seats re-reserved.",
+        )
+    return True
+
+
 def can_user_cancel(booking: Booking) -> bool:
     """Travellers may cancel unpaid holds. Paid bookings need the refund workflow (phase 5)."""
     return booking.status == Booking.Status.PENDING

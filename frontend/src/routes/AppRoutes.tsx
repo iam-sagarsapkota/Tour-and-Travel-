@@ -15,6 +15,7 @@ const EventDetailPage = lazy(() => import("@/pages/EventDetailPage"))
 const BookingPage = lazy(() => import("@/pages/BookingPage"))
 const MyBookingsPage = lazy(() => import("@/pages/dashboard/MyBookingsPage"))
 const BookingDetailPage = lazy(() => import("@/pages/dashboard/BookingDetailPage"))
+const PaymentReturnPage = lazy(() => import("@/pages/PaymentReturnPage"))
 const DestinationsPage = lazy(() =>
   import("@/pages/DestinationPages").then((module) => ({ default: module.DestinationsPage })),
 )
@@ -56,6 +57,7 @@ export function AppRoutes() {
             <Route path="events/:slug/book/:departureId" element={<BookingPage />} />
             <Route path="dashboard/bookings" element={<MyBookingsPage />} />
             <Route path="dashboard/bookings/:id" element={<BookingDetailPage />} />
+            <Route path="payments/:provider/:attemptId/:outcome" element={<PaymentReturnPage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

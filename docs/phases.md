@@ -10,8 +10,8 @@ pass, and merged to `main` once reviewed.
 | 2 | Catalog & departures (backend) | 5, 6.1, 9.2, 13 (Catalog, Scheduling), 20 | **Done** |
 | 3 | Frontend foundation & public site | 4.2, 5, 10, 11 | **Done** |
 | 4 | Bookings & capacity | 6.2, 6.3, 13 (Booking) | **Done** |
-| 5 | Payments | 7, 13 (Payments) | Next |
-| 6 | Dashboards & notifications | 8, 9, 14, 13 (Operations) | Planned |
+| 5 | Payments | 7, 13 (Payments) | **Done** (eSewa, Khalti; cards pending) |
+| 6 | Dashboards & notifications | 8, 9, 14, 13 (Operations) | Next |
 | 7 | Hardening & release | 16, 17, 18, 19 | Planned |
 
 Reviews, wishlist, coupons, maps, itinerary PDF and advanced reports are the PRD's
@@ -80,11 +80,19 @@ Not in this phase: payment, so bookings stay pending and expire after 15 minutes
 phase 5 connects eSewa/Khalti; traveller cancellation of paid bookings waits for the
 refund policy.
 
-## Phase 5 — Payments
+## Phase 5 — Payments (done for eSewa and Khalti)
 
-Payment, PaymentAttempt, Refund; eSewa and Khalti (sandbox) with server-side verification;
-card provider behind the same interface once eligibility is confirmed; idempotent
-callbacks, reconciliation, refund workflow, payment UI.
+- Payment, PaymentAttempt and an append-only PaymentLog.
+- eSewa ePay v2 (signing verified against the live sandbox) and Khalti KPG-2, both
+  verified server to server; the browser redirect is never trusted.
+- Amount checks, idempotent verification, reconciliation every 5 minutes, recovery for
+  late payments, duplicate-payment detection and an admin "needs attention" queue.
+- Pay-now on the booking page and a payment return page in the frontend.
+- Details: [payments.md](payments.md).
+
+Still open: an international card provider (needs your choice and an eligibility check) and
+refund workflows (PRD post-MVP, needs the refund policy). Khalti needs a sandbox key to be
+switched on.
 
 ## Phase 6 — Dashboards & notifications
 
@@ -105,7 +113,7 @@ These come from PRD section 25 and block the phases noted:
 |----------|-----------|
 | ~~Pending reservation TTL~~ — decided: 15 minutes | Phase 4 |
 | ~~Minimum group size behaviour~~ — decided: admin decides | Phase 4 |
-| Cancellation / refund policy | Phase 4–5 |
-| International card provider (Nepal merchant eligibility) | Phase 5 |
+| Cancellation / refund policy | Refund workflow (post-MVP) |
+| International card provider (Nepal merchant eligibility) | Card payments |
 | Currency / FX display rules | Phase 5 |
 | Which contact channel must be verified before booking | Phase 6 |

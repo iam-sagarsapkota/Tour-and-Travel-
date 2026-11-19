@@ -20,3 +20,9 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
 if not env("REDIS_URL", default=""):
     # Running outside Docker without Redis: keep throttling and caching in-process.
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+# eSewa's public sandbox (UAT) merchant from https://developer.esewa.com.np/pages/Epay.
+# These are documented test values, not secrets. Real credentials come from the environment.
+ESEWA_ENABLED = env.bool("ESEWA_ENABLED", default=True)
+ESEWA_PRODUCT_CODE = env("ESEWA_PRODUCT_CODE", default="EPAYTEST")
+ESEWA_SECRET_KEY = env("ESEWA_SECRET_KEY", default="8gBm/:&EnhH.1/q")

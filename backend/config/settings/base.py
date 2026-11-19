@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "apps.adventures",
     "apps.departures",
     "apps.bookings",
+    "apps.payments",
 ]
 
 MIDDLEWARE = [
@@ -117,6 +118,24 @@ DEFAULT_BOOKING_CUTOFF_DAYS = env.int("DEFAULT_BOOKING_CUTOFF_DAYS", default=3)
 BOOKING_HOLD_MINUTES = env.int("BOOKING_HOLD_MINUTES", default=15)
 MAX_PARTICIPANTS_PER_BOOKING = env.int("MAX_PARTICIPANTS_PER_BOOKING", default=20)
 
+# --- Payments -------------------------------------------------------------
+# Starting a payment extends the seat hold so the traveller can finish checkout.
+PAYMENT_HOLD_MINUTES = env.int("PAYMENT_HOLD_MINUTES", default=20)
+# A gateway "expired/not found" answer is not final before this age (user may still pay).
+PAYMENT_ATTEMPT_GRACE_MINUTES = env.int("PAYMENT_ATTEMPT_GRACE_MINUTES", default=30)
+PAYMENT_HTTP_TIMEOUT = env.int("PAYMENT_HTTP_TIMEOUT", default=15)
+# eSewa ePay v2. Defaults are the documented sandbox (UAT) URLs; credentials must be set.
+ESEWA_ENABLED = env.bool("ESEWA_ENABLED", default=False)
+ESEWA_PRODUCT_CODE = env("ESEWA_PRODUCT_CODE", default="")
+ESEWA_SECRET_KEY = env("ESEWA_SECRET_KEY", default="")
+ESEWA_FORM_URL = env("ESEWA_FORM_URL", default="https://rc-epay.esewa.com.np/api/epay/main/v2/form")
+ESEWA_STATUS_URL = env(
+    "ESEWA_STATUS_URL", default="https://rc.esewa.com.np/api/epay/transaction/status/"
+)
+# Khalti KPG-2. Enabled when a secret key is set (sandbox key from test-admin.khalti.com).
+KHALTI_SECRET_KEY = env("KHALTI_SECRET_KEY", default="")
+KHALTI_BASE_URL = env("KHALTI_BASE_URL", default="https://dev.khalti.com/api/v2/")
+
 # --- Cache / Celery -------------------------------------------------------
 REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CACHES = {
@@ -133,6 +152,10 @@ CELERY_BEAT_SCHEDULE = {
     "expire-unpaid-booking-holds": {
         "task": "bookings.expire_pending_bookings",
         "schedule": 60.0,  # seconds
+    },
+    "reconcile-open-payments": {
+        "task": "payments.reconcile_open_attempts",
+        "schedule": 300.0,  # eSewa: use the status API if no answer within five minutes
     },
 }
 
@@ -190,6 +213,7 @@ REST_FRAMEWORK = {
         "auth_password_reset": "5/hour",
         "auth_token_refresh": "60/min",
         "bookings_create": "30/hour",
+        "payments": "60/hour",
     },
 }
 
@@ -216,6 +240,8 @@ SPECTACULAR_SETTINGS = {
         "PublishStatusEnum": "common.models.PublishStatus",
         "DepartureStatusEnum": "apps.departures.models.DepartureStatus",
         "BookingStatusEnum": "apps.bookings.models.BookingStatus",
+        "PaymentStatusEnum": "apps.payments.models.PaymentStatus",
+        "PaymentAttemptStatusEnum": "apps.payments.models.PaymentAttemptStatus",
     },
 }
 

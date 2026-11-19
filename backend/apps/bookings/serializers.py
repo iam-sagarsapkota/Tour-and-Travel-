@@ -68,6 +68,12 @@ class BookingAdventureSerializer(serializers.Serializer):
     cancellation_policy = serializers.CharField()
 
 
+class BookingPaymentSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    provider = serializers.CharField()
+    paid_at = serializers.DateTimeField(allow_null=True)
+
+
 class BookingSerializer(serializers.ModelSerializer):
     departure = BookingDepartureSerializer(read_only=True)
     adventure = BookingAdventureSerializer(source="departure.adventure", read_only=True)
@@ -93,8 +99,15 @@ class BookingSerializer(serializers.ModelSerializer):
             "cancellation_reason",
             "created_at",
             "can_cancel",
+            "payment",
         ]
         read_only_fields = fields
+
+    payment = serializers.SerializerMethodField()
+
+    def get_payment(self, obj) -> dict | None:
+        payment = getattr(obj, "payment", None)  # reverse one-to-one; may not exist
+        return BookingPaymentSerializer(payment).data if payment else None
 
     def get_can_cancel(self, obj) -> bool:
         return services.can_user_cancel(obj)

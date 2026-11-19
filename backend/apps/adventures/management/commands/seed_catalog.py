@@ -166,6 +166,25 @@ ADVENTURES = [
         "itinerary": ["Budhanilkantha to Shivapuri Peak and back"],
         "departures": [(10, 20), (17, 20), (24, 20)],
     },
+    {
+        # Priced inside the payment sandboxes' limits (Khalti test: NPR 10-200) so the
+        # whole booking-and-payment flow can be tried with test wallets.
+        "slug": "sandbox-payment-test-walk",
+        "title": "Sandbox Payment Test Walk (demo)",
+        "destination": "kathmandu-valley",
+        "category": "day-hikes",
+        "activity_type": "hiking",
+        "difficulty": "easy",
+        "duration_days": 1,
+        "distance_km": "3",
+        "max_elevation_m": 1400,
+        "start_point": "Kathmandu",
+        "end_point": "Kathmandu",
+        "base_price": "100",
+        "summary": "Demo listing for testing eSewa and Khalti sandbox payments. Not a real trip.",
+        "itinerary": ["Short demo walk"],
+        "departures": [(7, 50), (14, 50)],
+    },
 ]
 
 

@@ -1,3 +1,5 @@
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *
 
 DEBUG = False
@@ -15,3 +17,9 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
+
+# Refuse to take real bookings against payment sandboxes.
+if ESEWA_ENABLED and (ESEWA_PRODUCT_CODE == "EPAYTEST" or "rc-epay" in ESEWA_FORM_URL):
+    raise ImproperlyConfigured("eSewa is configured with sandbox credentials or URLs.")
+if KHALTI_SECRET_KEY and "dev.khalti.com" in KHALTI_BASE_URL:
+    raise ImproperlyConfigured("Khalti is pointed at the sandbox (KHALTI_BASE_URL).")

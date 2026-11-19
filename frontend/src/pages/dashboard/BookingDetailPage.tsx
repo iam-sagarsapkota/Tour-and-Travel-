@@ -8,6 +8,8 @@ import { EmptyState, ErrorState } from "@/components/States"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { BookingStatusBadge } from "@/features/bookings/BookingStatusBadge"
 import { useBooking, useCancelBooking } from "@/features/bookings/queries"
+import { PaymentSelector } from "@/features/payments/PaymentSelector"
+import { goToGateway, useInitiatePayment, useProviders } from "@/features/payments/payments"
 import { ApiError } from "@/lib/api"
 import { formatDate, formatMoney } from "@/lib/format"
 import type { Booking } from "@/types/api"
@@ -29,8 +31,9 @@ function StatusNotice({ booking }: { booking: Booking }) {
           Your places are held until {formatTime(booking.expires_at)}.
         </p>
         <p className="mt-1">
-          Online payment with eSewa, Khalti and card is being added in the next release. If the hold
-          lapses before payment, the places return to sale and this booking expires.
+          {booking.payment?.status === "processing"
+            ? "Your payment is being processed by the provider. This page will update when it completes; please don't pay twice."
+            : "Pay below to confirm. If the hold lapses before payment, the places return to sale and this booking expires."}
         </p>
       </div>
     )
@@ -55,6 +58,47 @@ function StatusNotice({ booking }: { booking: Booking }) {
       {booking.cancelled_at ? ` on ${formatTime(booking.cancelled_at)}` : ""}.
       {booking.cancellation_reason && ` Reason: ${booking.cancellation_reason}`}
     </p>
+  )
+}
+
+function PayNow({ booking }: { booking: Booking }) {
+  const providers = useProviders()
+  const initiate = useInitiatePayment()
+  const holdActive =
+    booking.status === "pending" &&
+    booking.expires_at !== null &&
+    new Date(booking.expires_at).getTime() > Date.now()
+  if (!holdActive || booking.payment?.status === "processing") return null
+
+  return (
+    <section aria-labelledby="pay-heading" className="rounded-2xl border bg-card p-5">
+      <h2 id="pay-heading" className="sr-only">
+        Payment
+      </h2>
+      {providers.isPending ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          Loading payment methods…
+        </p>
+      ) : providers.isError ? (
+        <ErrorState
+          title="Payment methods didn't load"
+          message={providers.error.message}
+          onRetry={() => providers.refetch()}
+        />
+      ) : (
+        <PaymentSelector
+          providers={providers.data}
+          amount={booking.total_amount}
+          currency={booking.currency}
+          // Stay disabled after success: the browser is leaving for the gateway.
+          submitting={initiate.isPending || initiate.isSuccess}
+          error={initiate.error}
+          onPay={(provider) =>
+            initiate.mutate({ booking: booking.id, provider }, { onSuccess: (r) => goToGateway(r) })
+          }
+        />
+      )}
+    </section>
   )
 }
 
@@ -162,6 +206,7 @@ export default function BookingDetailPage() {
       </header>
 
       <StatusNotice booking={booking} />
+      <PayNow booking={booking} />
 
       <section aria-labelledby="price-heading" className="rounded-2xl border bg-card p-5">
         <h2 id="price-heading" className="text-lg font-bold text-forest">
