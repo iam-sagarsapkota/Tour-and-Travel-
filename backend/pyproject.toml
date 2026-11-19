@@ -7,7 +7,7 @@ requires-python = ">=3.14"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py"]
-addopts = "-ra --strict-markers --cov=apps --cov=common --cov-report=term-missing:skip-covered"
+addopts = "--ds=config.settings.test -ra --strict-markers --cov=apps --cov=common --cov-report=term-missing:skip-covered"
 
 [tool.coverage.run]
 omit = ["*/migrations/*", "*/tests/*"]
