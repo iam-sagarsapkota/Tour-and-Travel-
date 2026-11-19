@@ -154,7 +154,11 @@ function Footer() {
 
 export function RootLayout() {
   const { pathname } = useLocation()
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  // Block body on purpose: Chromium's scrollTo() returns a Promise, and React
+  // would treat a returned value as a cleanup function and crash.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   return (
     <div className="flex min-h-dvh flex-col">
