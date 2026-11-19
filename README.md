@@ -7,9 +7,10 @@ manage the catalog, departures, bookings and operations.
 Built from `Tour_Travel_System_PRD_ReactBits.pdf` (PRD v1.1) in phases — see
 [docs/phases.md](docs/phases.md) for the plan and current status.
 
-**Current status: Phases 1–5 complete.** Accounts and authentication, the tourism catalog,
-the public React site, solo/group bookings with capacity locking, and eSewa/Khalti payments
-with server-side verification are built. Card payments, dashboards and notifications are next.
+**Current status: Phases 1–6 complete.** Accounts, the tourism catalog, the public site,
+solo/group bookings with capacity locking, eSewa/Khalti payments with server-side
+verification, traveller and admin dashboards, email notifications and an audit log are
+built. Phase 7 (end-to-end tests, security review, production deployment) is next.
 
 ## Stack
 
@@ -38,12 +39,15 @@ backend/
   apps/departures/   scheduled departures, capacity and "bookable" rule
   apps/bookings/     bookings, seat holds, expiry task, cancellation
   apps/payments/     eSewa and Khalti gateways, verification, reconciliation
+  apps/notifications/ email queue, templates, Celery delivery, trip reminders
+  apps/operations/   audit log, site settings, contact inquiries
+  apps/analytics/    traveller and admin dashboard figures
   common/            error envelope, pagination, health endpoints
   requirements/      pinned dependencies (base, dev, prod)
 frontend/
   src/               React app (see docs/frontend.md for the layout)
   Dockerfile         dev server and production Nginx image
-docs/                phases, authentication, catalog, bookings, payments, frontend
+docs/                phases, authentication, catalog, bookings, payments, dashboards, frontend
 docker-compose.yml   development stack
 .github/workflows/   CI
 ```
@@ -64,6 +68,7 @@ Migrations run automatically when the backend container starts.
 | URL | What |
 |-----|------|
 | http://localhost:5173/ | Website |
+| http://localhost:5173/admin | Admin area (admin accounts) |
 | http://localhost:8000/api/v1/docs/ | Swagger UI |
 | http://localhost:8000/api/v1/schema/ | OpenAPI schema |
 | http://localhost:8000/django-admin/ | Django admin |
@@ -105,6 +110,7 @@ See [.env.example](.env.example). Secrets are read from the environment only;
 - [Catalog, departures and listing filters](docs/catalog.md)
 - [Bookings, seat holds and concurrency](docs/bookings.md)
 - [Payments: eSewa, Khalti, verification and sandbox testing](docs/payments.md)
+- [Dashboards, notifications, audit log](docs/dashboards-and-notifications.md)
 - [Frontend structure, auth handling and React Bits notes](docs/frontend.md)
 
 ## Branches

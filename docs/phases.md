@@ -11,8 +11,8 @@ pass, and merged to `main` once reviewed.
 | 3 | Frontend foundation & public site | 4.2, 5, 10, 11 | **Done** |
 | 4 | Bookings & capacity | 6.2, 6.3, 13 (Booking) | **Done** |
 | 5 | Payments | 7, 13 (Payments) | **Done** (eSewa, Khalti; cards pending) |
-| 6 | Dashboards & notifications | 8, 9, 14, 13 (Operations) | Next |
-| 7 | Hardening & release | 16, 17, 18, 19 | Planned |
+| 6 | Dashboards & notifications | 8, 9, 14, 13 (Operations) | **Done** |
+| 7 | Hardening & release | 16, 17, 18, 19 | Next |
 
 Reviews, wishlist, coupons, maps, itinerary PDF and advanced reports are the PRD's
 post-MVP "Phase 2" release and follow after phase 7.
@@ -94,11 +94,19 @@ Still open: an international card provider (needs your choice and an eligibility
 refund workflows (PRD post-MVP, needs the refund policy). Khalti needs a sandbox key to be
 switched on.
 
-## Phase 6 — Dashboards & notifications
+## Phase 6 — Dashboards & notifications (done)
 
-User dashboard (bookings, payments, profile, security), admin dashboard (KPIs, charts,
-management modules), AuditLog, SiteSettings, transactional email via Celery with retry,
-contact verification.
+- Traveller account area: overview, bookings, payments, profile & security (email
+  verification, password change, signed-in devices).
+- Forgot/reset password, email verification and contact pages; site announcement banner.
+- Admin area: dashboard (KPIs, monthly charts, rankings, alerts), bookings, payments,
+  departures, adventures (create/edit/publish/archive), users, inbox, audit log, settings.
+- Transactional email through Celery with retries and dedupe; trip reminders.
+- AuditLog, SiteSettings, ContactInquiry.
+- Details: [dashboards-and-notifications.md](dashboards-and-notifications.md).
+
+Not in this phase: SMS/WhatsApp; self-service email/phone changes; destination, category and
+photo management in the React admin (Django admin covers them); exports and coupons (post-MVP).
 
 ## Phase 7 — Hardening & release
 
@@ -116,4 +124,4 @@ These come from PRD section 25 and block the phases noted:
 | Cancellation / refund policy | Refund workflow (post-MVP) |
 | International card provider (Nepal merchant eligibility) | Card payments |
 | Currency / FX display rules | Phase 5 |
-| Which contact channel must be verified before booking | Phase 6 |
+| Which contact channel must be verified before booking (verification exists; not yet required) | Booking rules |

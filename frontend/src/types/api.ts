@@ -302,3 +302,167 @@ export interface SiteSettings {
   announcement: string
   announcement_active: boolean
 }
+
+// --- Admin -----------------------------------------------------------------------
+
+export interface AdminDashboard {
+  period: { from: string; months: number }
+  kpis: {
+    bookings: number
+    confirmed_bookings: number
+    verified_revenue: string
+    currency: string
+    upcoming_departures: number
+    active_users: number
+    published_adventures: number
+    payment_success_rate: number | null
+    booking_conversion: number | null
+  }
+  monthly: { month: string; bookings: number; revenue: string }[]
+  destination_popularity: { name: string; slug: string; travellers: number; bookings: number }[]
+  event_performance: {
+    title: string
+    slug: string
+    bookings: number
+    travellers: number
+    revenue: string
+  }[]
+  recent_bookings: {
+    id: string
+    reference: string
+    status: BookingStatus
+    total_amount: string
+    currency: string
+    created_at: string
+    traveller: string
+    adventure: string
+  }[]
+  capacity_alerts: {
+    id: string
+    adventure: string
+    start_date: string
+    seats_reserved: number
+    capacity: number
+  }[]
+  departures_needing_decision: {
+    id: string
+    adventure: string
+    start_date: string
+    seats_reserved: number
+    minimum: number
+  }[]
+  payments_needing_attention: {
+    id: string
+    amount: string
+    currency: string
+    status: PaymentStatus
+    reference: string
+  }[]
+}
+
+export interface AdminBooking extends Booking {
+  user: { id: string; full_name: string; email: string | null; phone: string | null }
+  history: {
+    from_status: string
+    to_status: string
+    actor: string | null
+    note: string
+    created_at: string
+  }[]
+  policy_accepted_at: string
+}
+
+export interface AdminPayment extends Payment {
+  traveller: string
+  traveller_contact: string
+  needs_attention: boolean
+  attention_reason: string
+  logs: { attempt: string; kind: string; message: string; payload: unknown; created_at: string }[]
+}
+
+export interface AdminDeparture {
+  id: string
+  adventure: string
+  adventure_title: string
+  start_date: string
+  end_date: string
+  booking_cutoff: string
+  capacity: number
+  min_participants: number | null
+  price_override: string | null
+  price: string
+  status: Departure["status"]
+  seats_reserved: number
+  seats_available: number
+  min_participants_met: boolean
+  needs_decision: boolean
+}
+
+export interface AdminAdventure {
+  id: string
+  title: string
+  slug: string
+  destination: string
+  category: string | null
+  activity_type: ActivityType
+  summary: string
+  description: string
+  difficulty: Difficulty
+  duration_days: number
+  base_price: string
+  currency: string
+  min_participants: number
+  max_group_size: number | null
+  solo_friendly: boolean
+  inclusions: string[]
+  exclusions: string[]
+  meeting_point: string
+  cancellation_policy: string
+  is_featured: boolean
+  status: "draft" | "published" | "archived"
+  published_at: string | null
+  itinerary: ItineraryDay[]
+}
+
+export interface AdminUser {
+  id: string
+  full_name: string
+  email: string | null
+  phone: string | null
+  role: Role
+  is_active: boolean
+  email_verified: boolean
+  date_joined: string
+  last_login: string | null
+}
+
+export interface AuditEntry {
+  id: number
+  actor: string | null
+  action: string
+  object_type: string
+  object_id: string
+  object_repr: string
+  changes: Record<string, [unknown, unknown]>
+  note: string
+  ip_address: string | null
+  created_at: string
+}
+
+export interface ContactInquiry {
+  id: string
+  name: string
+  email: string
+  phone: string
+  subject: string
+  message: string
+  handled: boolean
+  handled_by: string | null
+  handled_at: string | null
+  created_at: string
+}
+
+export interface Option {
+  id: string
+  name: string
+}

@@ -46,7 +46,12 @@ function Navbar() {
   const account =
     status === "authenticated" && user ? (
       <>
-        <NavLink to="/dashboard" className={navClass}>
+        {(user.role === "admin" || user.role === "super_admin") && (
+          <NavLink to="/admin" className={navClass}>
+            Admin
+          </NavLink>
+        )}
+        <NavLink to="/dashboard" className={navClass} end>
           My account
         </NavLink>
         <span className="px-3 text-sm text-offwhite/85">Hi, {user.full_name.split(" ")[0]}</span>

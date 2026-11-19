@@ -20,6 +20,8 @@ export default defineConfig({
     proxy: {
       '/api': process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000',
       '/media': process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000',
+      '/django-admin': process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000',
+      '/static': process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000',
     },
   },
   test: {

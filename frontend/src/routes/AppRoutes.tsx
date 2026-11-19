@@ -6,7 +6,9 @@ import { EmptyState } from "@/components/States"
 import { buttonVariants } from "@/components/ui/button"
 import { LoginPage, RegisterPage } from "@/features/auth/AuthForms"
 import { RequireAuth } from "@/features/auth/RequireAuth"
+import { RequireAdmin } from "@/features/admin/RequireAdmin"
 import { AccountLayout } from "@/layouts/AccountLayout"
+import { AdminLayout } from "@/layouts/AdminLayout"
 import { RootLayout } from "@/layouts/RootLayout"
 
 // Route-level code splitting.
@@ -28,6 +30,18 @@ const ResetPasswordPage = lazy(() =>
   publicAccount().then((m) => ({ default: m.ResetPasswordPage })),
 )
 const VerifyEmailPage = lazy(() => publicAccount().then((m) => ({ default: m.VerifyEmailPage })))
+const admin = () => import("@/pages/admin/OperationsPages")
+const catalog = () => import("@/pages/admin/CatalogPages")
+const AdminDashboardPage = lazy(() => import("@/pages/admin/DashboardPage"))
+const AdminBookingsPage = lazy(() => admin().then((m) => ({ default: m.BookingsPage })))
+const AdminPaymentsPage = lazy(() => admin().then((m) => ({ default: m.PaymentsPage })))
+const AdminUsersPage = lazy(() => admin().then((m) => ({ default: m.UsersPage })))
+const AdminInboxPage = lazy(() => admin().then((m) => ({ default: m.InboxPage })))
+const AdminAuditPage = lazy(() => admin().then((m) => ({ default: m.AuditPage })))
+const AdminAdventuresPage = lazy(() => catalog().then((m) => ({ default: m.AdventuresPage })))
+const AdminAdventureFormPage = lazy(() => catalog().then((m) => ({ default: m.AdventureFormPage })))
+const AdminDeparturesPage = lazy(() => catalog().then((m) => ({ default: m.DeparturesPage })))
+const AdminSettingsPage = lazy(() => catalog().then((m) => ({ default: m.SettingsPage })))
 const ContactPage = lazy(() => publicAccount().then((m) => ({ default: m.ContactPage })))
 const DestinationsPage = lazy(() =>
   import("@/pages/DestinationPages").then((module) => ({ default: module.DestinationsPage })),
@@ -80,6 +94,22 @@ export function AppRoutes() {
               <Route path="profile" element={<ProfilePage />} />
             </Route>
             <Route path="payments/:provider/:attemptId/:outcome" element={<PaymentReturnPage />} />
+          </Route>
+
+          {/* Admin area. Every /api/v1/admin endpoint checks the role on the server too. */}
+          <Route element={<RequireAdmin />}>
+            <Route path="admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="bookings" element={<AdminBookingsPage />} />
+              <Route path="payments" element={<AdminPaymentsPage />} />
+              <Route path="departures" element={<AdminDeparturesPage />} />
+              <Route path="adventures" element={<AdminAdventuresPage />} />
+              <Route path="adventures/:id" element={<AdminAdventureFormPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="inbox" element={<AdminInboxPage />} />
+              <Route path="audit" element={<AdminAuditPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
