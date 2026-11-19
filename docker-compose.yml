@@ -1,6 +1,5 @@
 # Development stack. Copy .env.example to .env first.
-# celery-beat and the production nginx proxy arrive with the phases that need them
-# (see docs/phases.md).
+# The production stack (Gunicorn, Nginx) arrives in phase 7 (see docs/phases.md).
 name: tour-travel
 
 x-backend: &backend
@@ -63,6 +62,11 @@ services:
   celery:
     <<: *backend
     command: celery -A config worker --loglevel=info
+
+  celery-beat:
+    <<: *backend
+    # Schedules periodic tasks, e.g. releasing unpaid booking holds every minute.
+    command: celery -A config beat --loglevel=info --schedule /tmp/celerybeat-schedule
 
   frontend:
     build:

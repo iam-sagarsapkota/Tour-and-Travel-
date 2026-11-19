@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from common.models import BaseModel, PublishStatus
@@ -32,6 +33,18 @@ class DepartureQuerySet(models.QuerySet):
             bookable_q(now=now),
             adventure__status=PublishStatus.PUBLISHED,
             adventure__destination__status=PublishStatus.PUBLISHED,
+        )
+
+    def needing_minimum_decision(self, now=None):
+        """Queryset twin of ``Departure.needs_minimum_decision``."""
+        now = now or timezone.now()
+        return self.annotate(
+            _minimum=Coalesce("min_participants", "adventure__min_participants")
+        ).filter(
+            status__in=[Departure.Status.OPEN, Departure.Status.CLOSED],
+            booking_cutoff__lte=now,
+            start_date__gte=timezone.localdate(now),
+            seats_reserved__lt=F("_minimum"),
         )
 
     def upcoming(self):
@@ -119,16 +132,34 @@ class Departure(BaseModel):
     def seats_available(self) -> int:
         return max(self.capacity - self.seats_reserved, 0)
 
-    def is_bookable(self, now=None) -> bool:
-        """Python twin of ``DepartureQuerySet.bookable`` for an already-loaded row."""
+    def needs_minimum_decision(self, now=None) -> bool:
+        """Booking has closed and the minimum group size was not reached.
+
+        Product decision: nothing happens automatically; an admin decides whether
+        the departure runs, is rescheduled or is cancelled.
+        """
+        now = now or timezone.now()
+        return (
+            self.status in (self.Status.OPEN, self.Status.CLOSED)
+            and self.booking_cutoff <= now
+            and self.start_date >= timezone.localdate(now)
+            and self.seats_reserved < self.effective_min_participants
+        )
+
+    def is_open_for_booking(self, now=None) -> bool:
+        """Status, dates and publication allow booking (seat count not considered)."""
         now = now or timezone.now()
         return (
             self.status == self.Status.OPEN
             and self.booking_cutoff > now
             and self.start_date >= timezone.localdate(now)
-            and self.seats_reserved < self.capacity
             and self.adventure.status == PublishStatus.PUBLISHED
+            and self.adventure.destination.status == PublishStatus.PUBLISHED
         )
+
+    def is_bookable(self, now=None) -> bool:
+        """Python twin of ``DepartureQuerySet.bookable`` for an already-loaded row."""
+        return self.is_open_for_booking(now) and self.seats_reserved < self.capacity
 
 
 # Importable alias (used by SPECTACULAR_SETTINGS["ENUM_NAME_OVERRIDES"]).

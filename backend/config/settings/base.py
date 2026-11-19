@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.destinations",
     "apps.adventures",
     "apps.departures",
+    "apps.bookings",
 ]
 
 MIDDLEWARE = [
@@ -112,6 +113,9 @@ MAX_IMAGE_UPLOAD_BYTES = env.int("MAX_IMAGE_UPLOAD_BYTES", default=5 * 1024 * 10
 BUSINESS_TIME_ZONE = "Asia/Kathmandu"
 # Used when an admin schedules a departure without an explicit booking cutoff.
 DEFAULT_BOOKING_CUTOFF_DAYS = env.int("DEFAULT_BOOKING_CUTOFF_DAYS", default=3)
+# How long unpaid seats are held before they return to sale (product decision: 15 min).
+BOOKING_HOLD_MINUTES = env.int("BOOKING_HOLD_MINUTES", default=15)
+MAX_PARTICIPANTS_PER_BOOKING = env.int("MAX_PARTICIPANTS_PER_BOOKING", default=20)
 
 # --- Cache / Celery -------------------------------------------------------
 REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
@@ -125,6 +129,12 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL)
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=REDIS_URL)
 CELERY_TASK_ACKS_LATE = True
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    "expire-unpaid-booking-holds": {
+        "task": "bookings.expire_pending_bookings",
+        "schedule": 60.0,  # seconds
+    },
+}
 
 # --- Email ----------------------------------------------------------------
 # Django 6.1 MAILERS configuration. SMTP options are only read when SMTP is the backend.
@@ -179,6 +189,7 @@ REST_FRAMEWORK = {
         "auth_register": "20/hour",
         "auth_password_reset": "5/hour",
         "auth_token_refresh": "60/min",
+        "bookings_create": "30/hour",
     },
 }
 
@@ -204,6 +215,7 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "PublishStatusEnum": "common.models.PublishStatus",
         "DepartureStatusEnum": "apps.departures.models.DepartureStatus",
+        "BookingStatusEnum": "apps.bookings.models.BookingStatus",
     },
 }
 

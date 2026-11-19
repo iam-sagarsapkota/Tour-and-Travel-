@@ -42,6 +42,8 @@ class DepartureAdminSerializer(serializers.ModelSerializer):
     adventure_title = serializers.CharField(source="adventure.title", read_only=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     seats_available = serializers.IntegerField(read_only=True)
+    min_participants_met = serializers.SerializerMethodField()
+    needs_decision = serializers.SerializerMethodField()
 
     class Meta:
         model = Departure
@@ -59,6 +61,8 @@ class DepartureAdminSerializer(serializers.ModelSerializer):
             "status",
             "seats_reserved",
             "seats_available",
+            "min_participants_met",
+            "needs_decision",
             "created_at",
             "updated_at",
         ]
@@ -67,6 +71,13 @@ class DepartureAdminSerializer(serializers.ModelSerializer):
             "end_date": {"required": False},
             "booking_cutoff": {"required": False},
         }
+
+    def get_min_participants_met(self, obj) -> bool:
+        return obj.seats_reserved >= obj.effective_min_participants
+
+    def get_needs_decision(self, obj) -> bool:
+        """Bookings have closed below the minimum: an admin must run, move or cancel it."""
+        return obj.needs_minimum_decision()
 
     def validate(self, attrs):
         instance = self.instance
