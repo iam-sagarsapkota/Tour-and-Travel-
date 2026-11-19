@@ -7,9 +7,9 @@ manage the catalog, departures, bookings and operations.
 Built from `Tour_Travel_System_PRD_ReactBits.pdf` (PRD v1.1) in phases — see
 [docs/phases.md](docs/phases.md) for the plan and current status.
 
-**Current status: Phases 1–3 complete.** Accounts and authentication, the tourism catalog
-(destinations, adventures, departures) and the public React site are built. Bookings,
-payments and dashboards are not built yet.
+**Current status: Phases 1–4 complete.** Accounts and authentication, the tourism catalog,
+the public React site and solo/group bookings with capacity locking are built. Payments are
+not connected yet, so bookings stay unpaid and expire after their 15-minute hold.
 
 ## Stack
 
@@ -36,12 +36,13 @@ backend/
   apps/destinations/ destination directory
   apps/adventures/   categories, adventures, gallery, itinerary, public event API
   apps/departures/   scheduled departures, capacity and "bookable" rule
+  apps/bookings/     bookings, seat holds, expiry task, cancellation
   common/            error envelope, pagination, health endpoints
   requirements/      pinned dependencies (base, dev, prod)
 frontend/
   src/               React app (see docs/frontend.md for the layout)
   Dockerfile         dev server and production Nginx image
-docs/                phases, authentication, catalog, frontend
+docs/                phases, authentication, catalog, bookings, frontend
 docker-compose.yml   development stack
 .github/workflows/   CI
 ```
@@ -101,6 +102,7 @@ See [.env.example](.env.example). Secrets are read from the environment only;
 - [Delivery phases and open decisions](docs/phases.md)
 - [Authentication, roles and token model](docs/authentication.md)
 - [Catalog, departures and listing filters](docs/catalog.md)
+- [Bookings, seat holds and concurrency](docs/bookings.md)
 - [Frontend structure, auth handling and React Bits notes](docs/frontend.md)
 
 ## Branches

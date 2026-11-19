@@ -34,6 +34,9 @@ function Navbar() {
   const account =
     status === "authenticated" && user ? (
       <>
+        <NavLink to="/dashboard/bookings" className={navClass}>
+          My bookings
+        </NavLink>
         <span className="px-3 text-sm text-offwhite/85">Hi, {user.full_name.split(" ")[0]}</span>
         <Button
           variant="outline"

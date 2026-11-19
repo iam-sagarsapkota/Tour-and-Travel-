@@ -9,8 +9,8 @@ pass, and merged to `main` once reviewed.
 | 1 | Foundation & identity | 2, 3, 4.1, 12, 13 (Identity), 15, 17 | **Done** |
 | 2 | Catalog & departures (backend) | 5, 6.1, 9.2, 13 (Catalog, Scheduling), 20 | **Done** |
 | 3 | Frontend foundation & public site | 4.2, 5, 10, 11 | **Done** |
-| 4 | Bookings & capacity | 6.2, 6.3, 13 (Booking) | Next |
-| 5 | Payments | 7, 13 (Payments) | Planned |
+| 4 | Bookings & capacity | 6.2, 6.3, 13 (Booking) | **Done** |
+| 5 | Payments | 7, 13 (Payments) | Next |
 | 6 | Dashboards & notifications | 8, 9, 14, 13 (Operations) | Planned |
 | 7 | Hardening & release | 16, 17, 18, 19 | Planned |
 
@@ -64,11 +64,21 @@ zero until phase 4. Route maps are a stored URL only; map rendering is post-MVP.
 Not in this phase: no booking button yet (phase 4); remaining React Bits components listed
 in frontend.md; SEO prerendering is evaluated in phase 7.
 
-## Phase 4 — Bookings & capacity
+## Phase 4 — Bookings & capacity (done)
 
-Booking and BookingParticipant, server-side Decimal pricing, human-readable booking
-reference, `select_for_update` capacity locking, pending-reservation expiry (Celery beat),
-cancellation rules, concurrency tests on PostgreSQL, booking flow UI.
+- Booking, BookingParticipant and an append-only BookingEvent history.
+- Solo and group bookings with server-side Decimal pricing, a quote endpoint and
+  human-readable references (`HT-XXXXXXXX`).
+- Row-locked seat reservation, 15-minute holds released on the next booking or by the
+  Celery beat sweeper every minute; PostgreSQL concurrency test for overselling.
+- Travellers cancel unpaid holds; admins search bookings, see history and cancel with a reason.
+- Departures that close below their minimum are flagged for an admin decision.
+- Booking page, My bookings and booking detail in the frontend.
+- Details: [bookings.md](bookings.md).
+
+Not in this phase: payment, so bookings stay pending and expire after 15 minutes until
+phase 5 connects eSewa/Khalti; traveller cancellation of paid bookings waits for the
+refund policy.
 
 ## Phase 5 — Payments
 
@@ -93,8 +103,8 @@ These come from PRD section 25 and block the phases noted:
 
 | Decision | Needed by |
 |----------|-----------|
-| Pending reservation TTL (how long unpaid seats are held) | Phase 4 |
-| Minimum group size behaviour when unmet | Phase 4 |
+| ~~Pending reservation TTL~~ — decided: 15 minutes | Phase 4 |
+| ~~Minimum group size behaviour~~ — decided: admin decides | Phase 4 |
 | Cancellation / refund policy | Phase 4–5 |
 | International card provider (Nepal merchant eligibility) | Phase 5 |
 | Currency / FX display rules | Phase 5 |

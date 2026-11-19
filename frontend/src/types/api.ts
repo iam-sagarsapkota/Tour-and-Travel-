@@ -166,3 +166,48 @@ export interface ApiErrorBody {
     details: Record<string, string[] | string> | null
   }
 }
+
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "expired"
+
+export interface BookingParticipant {
+  full_name: string
+  nationality: string
+  date_of_birth: string | null
+  is_lead: boolean
+}
+
+export interface Booking {
+  id: string
+  reference: string
+  status: BookingStatus
+  departure: { id: string; start_date: string; end_date: string; status: Departure["status"] }
+  adventure: {
+    title: string
+    slug: string
+    cover_image: string | null
+    duration_days: number
+    destination: string
+    cancellation_policy: string
+  }
+  participant_count: number
+  unit_price: string
+  total_amount: string
+  currency: string
+  participants: BookingParticipant[]
+  expires_at: string | null
+  confirmed_at: string | null
+  cancelled_at: string | null
+  cancellation_reason: string
+  created_at: string
+  can_cancel: boolean
+}
+
+export interface Quote {
+  departure: string
+  participant_count: number
+  unit_price: string
+  total_amount: string
+  currency: string
+  seats_available: number
+  is_bookable: boolean
+}

@@ -80,7 +80,15 @@ function ItemList({ items, included }: { items: string[]; included: boolean }) {
   )
 }
 
-function DepartureRow({ departure, currency }: { departure: Departure; currency: string }) {
+function DepartureRow({
+  departure,
+  currency,
+  slug,
+}: {
+  departure: Departure
+  currency: string
+  slug: string
+}) {
   const seats = departure.seats_available
   const status = departure.is_bookable
     ? seats === 1
@@ -99,7 +107,7 @@ function DepartureRow({ departure, currency }: { departure: Departure; currency:
           Minimum {departure.min_participants} to run · up to {departure.capacity} trekkers
         </p>
       </div>
-      <div className="sm:text-right">
+      <div className="sm:ml-auto sm:text-right">
         <p className="font-heading font-bold text-forest">
           {formatMoney(departure.price, currency)}{" "}
           <span className="text-sm font-normal text-muted-foreground">per person</span>
@@ -114,6 +122,15 @@ function DepartureRow({ departure, currency }: { departure: Departure; currency:
           {status}
         </p>
       </div>
+      {departure.is_bookable && (
+        <Link
+          to={`/events/${slug}/book/${departure.id}`}
+          className={buttonVariants({ className: "h-11 px-5 text-base sm:ml-4" })}
+          aria-label={`Book ${formatDate(departure.start_date)} departure`}
+        >
+          Book
+        </Link>
+      )}
     </li>
   )
 }
@@ -216,11 +233,16 @@ export default function EventDetailPage() {
           <>
             <ul className="space-y-3">
               {event.departures.map((departure) => (
-                <DepartureRow key={departure.id} departure={departure} currency={event.currency} />
+                <DepartureRow
+                  key={departure.id}
+                  departure={departure}
+                  currency={event.currency}
+                  slug={event.slug}
+                />
               ))}
             </ul>
-            <p className="mt-4 rounded-lg bg-accent px-4 py-3 text-sm text-accent-foreground">
-              Online booking is not open yet. It arrives with the next release.
+            <p className="mt-4 text-sm text-muted-foreground">
+              Prices are per person. Booking holds your places for a short time while you pay.
             </p>
           </>
         )}
