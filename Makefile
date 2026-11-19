@@ -1,4 +1,4 @@
-.PHONY: up down logs migrate superuser test lint format shell
+.PHONY: up down logs migrate superuser test test-frontend lint format shell
 
 up:
 	docker compose up --build
@@ -18,8 +18,12 @@ superuser:
 test:
 	docker compose exec backend pytest
 
+test-frontend:
+	docker compose exec frontend npm test
+
 lint:
 	docker compose exec backend sh -c "ruff check . && ruff format --check ."
+	docker compose exec frontend sh -c "npm run lint && npm run format:check"
 
 format:
 	docker compose exec backend sh -c "ruff check --fix . && ruff format ."

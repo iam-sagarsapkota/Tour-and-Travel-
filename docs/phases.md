@@ -8,8 +8,8 @@ pass, and merged to `main` once reviewed.
 |---|-------|--------------|--------|
 | 1 | Foundation & identity | 2, 3, 4.1, 12, 13 (Identity), 15, 17 | **Done** |
 | 2 | Catalog & departures (backend) | 5, 6.1, 9.2, 13 (Catalog, Scheduling), 20 | **Done** |
-| 3 | Frontend foundation & public site | 4.2, 5, 10, 11 | Next |
-| 4 | Bookings & capacity | 6.2, 6.3, 13 (Booking) | Planned |
+| 3 | Frontend foundation & public site | 4.2, 5, 10, 11 | **Done** |
+| 4 | Bookings & capacity | 6.2, 6.3, 13 (Booking) | Next |
 | 5 | Payments | 7, 13 (Payments) | Planned |
 | 6 | Dashboards & notifications | 8, 9, 14, 13 (Operations) | Planned |
 | 7 | Hardening & release | 16, 17, 18, 19 | Planned |
@@ -48,12 +48,21 @@ self-serve a password reset until an SMS channel exists; an admin can reset it f
 Not in this phase: bookings do not exist yet, so `seats_reserved` and `popularity` stay at
 zero until phase 4. Route maps are a stored URL only; map rendering is post-MVP.
 
-## Phase 3 — Frontend foundation & public site
+## Phase 3 — Frontend foundation & public site (done)
 
-React + Vite + TypeScript, Tailwind, shadcn/ui, React Bits wrappers in
-`src/components/animations/`, brand tokens, layouts, auth pages, route guards with a
-validated `next` return path, homepage, event listing/detail, destination pages,
-Vitest + React Testing Library, frontend Docker service.
+- React + Vite + TypeScript, Tailwind, shadcn/ui, brand tokens, Manrope/Inter.
+- React Bits: Split Text (hero), Spotlight Card (featured events), Animated Content
+  (scroll reveal), lazy-loaded and reduced-motion aware.
+- Login and registration (email or phone), session restore, token refresh, logout.
+- Guest → `/register?next=/events/{slug}` → back to the event, with `next` validated.
+- Homepage, event listing with URL-based filters and pagination, event detail,
+  destination directory and detail; loading, empty and error states throughout.
+- Frontend service in Docker Compose, production image on unprivileged Nginx,
+  frontend CI job, 46 frontend tests.
+- Details: [frontend.md](frontend.md).
+
+Not in this phase: no booking button yet (phase 4); remaining React Bits components listed
+in frontend.md; SEO prerendering is evaluated in phase 7.
 
 ## Phase 4 — Bookings & capacity
 

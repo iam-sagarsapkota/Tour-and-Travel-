@@ -7,9 +7,9 @@ manage the catalog, departures, bookings and operations.
 Built from `Tour_Travel_System_PRD_ReactBits.pdf` (PRD v1.1) in phases — see
 [docs/phases.md](docs/phases.md) for the plan and current status.
 
-**Current status: Phases 1–2 complete.** The backend API covers accounts, authentication and
-the tourism catalog (destinations, adventures, departures). The frontend, bookings and
-payments are not built yet.
+**Current status: Phases 1–3 complete.** Accounts and authentication, the tourism catalog
+(destinations, adventures, departures) and the public React site are built. Bookings,
+payments and dashboards are not built yet.
 
 ## Stack
 
@@ -23,8 +23,9 @@ payments are not built yet.
 | Images | Pillow 13.0.0 |
 | Tests / quality | pytest 9.2.0, pytest-django 4.14.0, Ruff 0.17.5 |
 | Runtime | Docker Compose |
+| Frontend | React 19, Vite 8, TypeScript, Tailwind CSS 4, shadcn/ui, React Bits (GSAP) |
+| Frontend tests | Vitest, React Testing Library, oxlint, Prettier |
 
-Frontend (React + Vite + TypeScript, Tailwind, shadcn/ui, React Bits) arrives in phase 3.
 
 ## Repository layout
 
@@ -37,7 +38,10 @@ backend/
   apps/departures/   scheduled departures, capacity and "bookable" rule
   common/            error envelope, pagination, health endpoints
   requirements/      pinned dependencies (base, dev, prod)
-docs/                phases, authentication, catalog
+frontend/
+  src/               React app (see docs/frontend.md for the layout)
+  Dockerfile         dev server and production Nginx image
+docs/                phases, authentication, catalog, frontend
 docker-compose.yml   development stack
 .github/workflows/   CI
 ```
@@ -57,6 +61,7 @@ Migrations run automatically when the backend container starts.
 
 | URL | What |
 |-----|------|
+| http://localhost:5173/ | Website |
 | http://localhost:8000/api/v1/docs/ | Swagger UI |
 | http://localhost:8000/api/v1/schema/ | OpenAPI schema |
 | http://localhost:8000/django-admin/ | Django admin |
@@ -66,6 +71,7 @@ Other commands:
 
 ```bash
 docker compose exec backend pytest                     # tests (against PostgreSQL)
+docker compose exec frontend npm test                  # frontend tests
 docker compose exec backend ruff check .               # lint
 docker compose exec backend python manage.py migrate   # apply migrations manually
 docker compose logs -f
@@ -95,6 +101,7 @@ See [.env.example](.env.example). Secrets are read from the environment only;
 - [Delivery phases and open decisions](docs/phases.md)
 - [Authentication, roles and token model](docs/authentication.md)
 - [Catalog, departures and listing filters](docs/catalog.md)
+- [Frontend structure, auth handling and React Bits notes](docs/frontend.md)
 
 ## Branches
 

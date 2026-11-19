@@ -16,3 +16,7 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
     "rest_framework.renderers.JSONRenderer",
     "rest_framework.renderers.BrowsableAPIRenderer",
 ]
+
+if not env("REDIS_URL", default=""):
+    # Running outside Docker without Redis: keep throttling and caching in-process.
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
