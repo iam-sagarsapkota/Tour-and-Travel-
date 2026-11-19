@@ -8,6 +8,7 @@ export interface UserProfile {
   address: string
   emergency_contact_name: string
   emergency_contact_phone: string
+  trip_reminders: boolean
 }
 
 export interface User {
@@ -277,4 +278,27 @@ export interface Quote {
   currency: string
   seats_available: number
   is_bookable: boolean
+}
+
+export interface TravellerDashboard {
+  counts: { total: number; upcoming: number; completed: number; cancelled: number }
+  total_spent: string
+  currency: string
+  upcoming: Booking[]
+  pending_payment: Booking[]
+  recommendations: EventCard[]
+}
+
+export interface Session {
+  id: number
+  created_at: string
+  expires_at: string
+}
+
+export interface SiteSettings {
+  site_name: string
+  support_email: string
+  support_phone: string
+  announcement: string
+  announcement_active: boolean
 }

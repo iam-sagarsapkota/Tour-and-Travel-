@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Toaster } from "@/components/ui/sonner"
+import { useSiteSettings } from "@/features/account/queries"
 import { useAuth } from "@/features/auth/AuthContext"
 import { cn } from "@/lib/utils"
 
@@ -12,7 +13,18 @@ const YEAR = new Date().getFullYear()
 const NAV = [
   { to: "/events", label: "Adventures" },
   { to: "/destinations", label: "Destinations" },
+  { to: "/contact", label: "Contact" },
 ]
+
+function Announcement() {
+  const site = useSiteSettings()
+  if (!site.data?.announcement_active || !site.data.announcement) return null
+  return (
+    <div role="note" className="bg-gold px-4 py-2 text-center text-sm font-medium text-forest">
+      {site.data.announcement}
+    </div>
+  )
+}
 
 function navClass({ isActive }: { isActive: boolean }) {
   return cn(
@@ -34,8 +46,8 @@ function Navbar() {
   const account =
     status === "authenticated" && user ? (
       <>
-        <NavLink to="/dashboard/bookings" className={navClass}>
-          My bookings
+        <NavLink to="/dashboard" className={navClass}>
+          My account
         </NavLink>
         <span className="px-3 text-sm text-offwhite/85">Hi, {user.full_name.split(" ")[0]}</span>
         <Button
@@ -162,6 +174,7 @@ export function RootLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <Announcement />
       <Navbar />
       <main id="main" className="flex-1">
         <Outlet />

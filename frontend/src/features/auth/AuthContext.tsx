@@ -21,6 +21,10 @@ interface AuthContextValue {
   login: (identifier: string, password: string) => Promise<User>
   register: (input: RegisterInput) => Promise<User>
   logout: () => Promise<void>
+  /** Reload the signed-in user (after profile changes or email verification). */
+  refreshUser: () => Promise<void>
+  /** End the local session without calling the API (e.g. after signing out everywhere). */
+  endSession: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -97,9 +101,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [signOutLocally])
 
+  const refreshUser = useCallback(async () => {
+    setUser(await api<User>("/auth/me/"))
+  }, [])
+
   const value = useMemo(
-    () => ({ user, status, login, register, logout }),
-    [user, status, login, register, logout],
+    () => ({ user, status, login, register, logout, refreshUser, endSession: signOutLocally }),
+    [user, status, login, register, logout, refreshUser, signOutLocally],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
@@ -129,6 +137,8 @@ export function StaticAuthProvider({
       throw new Error("not implemented")
     },
     logout: async () => {},
+    refreshUser: async () => {},
+    endSession: () => {},
     ...value,
   }
   return <AuthContext.Provider value={full}>{children}</AuthContext.Provider>

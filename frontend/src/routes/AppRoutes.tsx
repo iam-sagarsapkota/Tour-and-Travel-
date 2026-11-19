@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/States"
 import { buttonVariants } from "@/components/ui/button"
 import { LoginPage, RegisterPage } from "@/features/auth/AuthForms"
 import { RequireAuth } from "@/features/auth/RequireAuth"
+import { AccountLayout } from "@/layouts/AccountLayout"
 import { RootLayout } from "@/layouts/RootLayout"
 
 // Route-level code splitting.
@@ -16,6 +17,18 @@ const BookingPage = lazy(() => import("@/pages/BookingPage"))
 const MyBookingsPage = lazy(() => import("@/pages/dashboard/MyBookingsPage"))
 const BookingDetailPage = lazy(() => import("@/pages/dashboard/BookingDetailPage"))
 const PaymentReturnPage = lazy(() => import("@/pages/PaymentReturnPage"))
+const OverviewPage = lazy(() => import("@/pages/dashboard/OverviewPage"))
+const PaymentsPage = lazy(() => import("@/pages/dashboard/PaymentsPage"))
+const ProfilePage = lazy(() => import("@/pages/dashboard/ProfilePage"))
+const publicAccount = () => import("@/pages/AccountPublicPages")
+const ForgotPasswordPage = lazy(() =>
+  publicAccount().then((m) => ({ default: m.ForgotPasswordPage })),
+)
+const ResetPasswordPage = lazy(() =>
+  publicAccount().then((m) => ({ default: m.ResetPasswordPage })),
+)
+const VerifyEmailPage = lazy(() => publicAccount().then((m) => ({ default: m.VerifyEmailPage })))
+const ContactPage = lazy(() => publicAccount().then((m) => ({ default: m.ContactPage })))
 const DestinationsPage = lazy(() =>
   import("@/pages/DestinationPages").then((module) => ({ default: module.DestinationsPage })),
 )
@@ -50,13 +63,22 @@ export function AppRoutes() {
           <Route path="destinations/:slug" element={<DestinationDetailPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
+          <Route path="contact" element={<ContactPage />} />
 
           {/* Account required. The API enforces this as well. */}
           <Route element={<RequireAuth />}>
             <Route path="events/:slug" element={<EventDetailPage />} />
             <Route path="events/:slug/book/:departureId" element={<BookingPage />} />
-            <Route path="dashboard/bookings" element={<MyBookingsPage />} />
-            <Route path="dashboard/bookings/:id" element={<BookingDetailPage />} />
+            <Route path="dashboard" element={<AccountLayout />}>
+              <Route index element={<OverviewPage />} />
+              <Route path="bookings" element={<MyBookingsPage />} />
+              <Route path="bookings/:id" element={<BookingDetailPage />} />
+              <Route path="payments" element={<PaymentsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+            </Route>
             <Route path="payments/:provider/:attemptId/:outcome" element={<PaymentReturnPage />} />
           </Route>
 
